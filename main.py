@@ -51,6 +51,19 @@ def drawTitle(s):
     s.blit(pTurn, pTurnRect)
 
 
+def drawWinner(s):
+    font = pg.font.Font('freesansbold.ttf', 32)
+    title = font.render("Connect Four", True, COLOUR_BLACK)
+    titleRect = title.get_rect()
+    titleRect.center = (WIDTH // 2, 20)
+    s.blit(title, titleRect)
+    font2 = pg.font.Font('freesansbold.ttf', 18)
+    pTurn = font2.render(("Player " + str(turn + 1) + " won."), True, COLOUR_BLACK)
+    pTurnRect = pTurn.get_rect()
+    pTurnRect.center = (WIDTH // 2, 60)
+    s.blit(pTurn, pTurnRect)
+
+
 def drawBoard(s):
     pg.draw.rect(s, COLOUR_BLUE, pg.Rect(30, 90, 55 * COLS + 5, 55 * ROWS + 5))
     for i in range(COLS):
@@ -71,22 +84,22 @@ def drawBoard(s):
 def checkWinner(x, y):
     for i in range(-3, 1):
         # rows
-        if 0 <= x + i < ROWS-3:
+        if 0 <= x + i < COLS-3:
             if board[y][x + i] == board[y][x + i + 1] == board[y][x + i + 2] == board[y][x + i + 3]:
                 return True
 
         # cols
-        if 0 <= y + i < COLS-3:
+        if 0 <= y + i < ROWS-3:
             if board[y + i][x] == board[y + i + 1][x] == board[y + i + 2][x] == board[y + i + 3][x]:
                 return True
 
         # /
-        if 0 <= x + i < ROWS-3 and 0 <= y + i < COLS-3:
+        if 0 <= x + i < COLS-3 and 0 <= y + i < ROWS-3:
             if board[y + i][x + i] == board[y + i + 1][x + i + 1] == board[y + i + 2][x + i + 2] == board[y + i + 3][x + i + 3]:
                 return True
 
         # \
-        if 0 <= x + i < ROWS-3 and 3 <= y - i < COLS:
+        if 0 <= x + i < COLS-3 and 3 <= y - i < ROWS:
             if board[y - i][x + i] == board[y - i - 1][x + i + 1] == board[y - i - 2][x + i + 2] == board[y - i - 3][x + i + 3]:
                 return True
 
@@ -100,38 +113,49 @@ screen = pg.display.set_mode((WIDTH, HEIGHT))
 screen.fill(COLOUR_WHITE)
 clock = pg.time.Clock()
 
-
 turn = 0
 done = False
 
-while not done:
-    for event in pg.event.get():
-        if event.type == pg.MOUSEBUTTONUP:
-            # mouse position
-            mouseX = pg.mouse.get_pos()[0]
-            mouseXidx = mouseIdx(mouseX)
+while True:
+    while not done:
+        for event in pg.event.get():
+            if event.type == pg.MOUSEBUTTONUP:
+                # mouse position
+                mouseX = pg.mouse.get_pos()[0]
+                mouseXidx = mouseIdx(mouseX)
 
-            if 0 <= mouseXidx < COLS and lowest[mouseXidx] < ROWS:
-                board[lowest[mouseXidx]][mouseXidx] = ("X" if turn == 0 else "O")
-            if checkWinner(mouseXidx, lowest[mouseXidx]):
-                print("\nPlayer", turn + 1, "won!\n")
-                drawBoard(screen)
+                if 0 <= mouseXidx < COLS and lowest[mouseXidx] < ROWS:
+                    board[lowest[mouseXidx]][mouseXidx] = ("X" if turn == 0 else "O")
+                    # print(lowest[mouseXidx],mouseXidx)
+                    # printBoard()
+
+                    if checkWinner(mouseXidx, lowest[mouseXidx]):
+                        print("\nPlayer", turn + 1, "won!\n")
+                        drawBoard(screen)
+                        done = True
+                        break
+
+                    lowest[mouseXidx] += 1
+
+                    turn = (turn + 1) % 2
+
+            if event.type == pg.QUIT:
                 done = True
-                break
+        # mouse position
+        mouseX = pg.mouse.get_pos()[0]
+        mouseXidx = mouseIdx(mouseX)
 
-            lowest[mouseXidx] += 1
-
-            turn = (turn + 1) % 2
-
-        if event.type == pg.QUIT:
-            done = True
-    # mouse position
-    mouseX = pg.mouse.get_pos()[0]
-    mouseXidx = mouseIdx(mouseX)
-
-    # display
+        # display
+        screen.fill(COLOUR_WHITE)
+        drawTitle(screen)
+        drawBoard(screen)
+        pg.display.flip()
+        clock.tick(TICK_SPEED)
     screen.fill(COLOUR_WHITE)
-    drawTitle(screen)
+    drawWinner(screen)
     drawBoard(screen)
     pg.display.flip()
     clock.tick(TICK_SPEED)
+
+
+
